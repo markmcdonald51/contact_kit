@@ -1,0 +1,109 @@
+= ContactKit
+============
+
+
+ContactKit is a collection of all of the associations I find useful 
+when creating a simple (or complicated) application as I always seem to end up using these same associations. In each of these classes you will find little goodies that allow you to work effectively with the association type. All are equipped with polymorphic attributes so you can use them any want in multiple classes without interference.
+
+I added in a sample Order class that shows how one could usefully connect these as associations using the belongs to method. In a real order class you would most likely never use a belongs_to association as address normalization in not what you want. In that case you would use a has_one association as you need to record the data in that record for the given order.
+
+Below is that a class using the belongs_to example:
+
+
+  class Order < ActiveRecord::Base
+    belongs_to :email
+
+    belongs_to :phone_number
+    belongs_to :ip_address
+    
+    belongs_to :shipping_address,	:class_name => 'Address'
+    belongs_to :billing_address, 	:class_name => 'Address'
+    
+    belongs_to :shipping_receipient, :class_name => 'Person'
+    belongs_to :billing_receipient, :class_name => 'Person'
+    
+  end    
+
+
+
+Perhaps the most useful part of ContactKit is the Address class as it makes use of Geokit to verify the address location. It doesn this by making a call to google geocode (or yahoo depending on configuration). Although your limited to what yahoo or google have listed in their database, I think you will find that they have a pretty accurate reading on worldwide addresses.
+
+I wrote this class to get around using expensive services such as QuickAddress and Melissa Data (which are excellent options if you have the money eg, ~$20K US a year).  You will have to install the geokit-rails  plugin and the geokit gem to make use of all these nifty features. I also
+went a little bit further to normalise the Address attributes
+such as City, Region and Country which are saved and stored in their respective tables. 
+
+
+Oh one other nice thing the Address class does is make use of GeoKit's geoip and geocodes the address on the save. 
+
+If you have any questions/suggestions feel free to email me at mark.mcdonald --at~~gmail.com
+
+If you do use this, please send me a note and tell me if it was useful!
+ 
+
+Sample Address Usage (in console):
+
+  
+  >> address = Address.new(:street_address => '1 icon', :postal_code =>'92610')
+    
+  => #<Address id: nil, street_address: "1 icon", postal_code: "92610", city_id: nil, md5: nil, lat: nil, lng: nil, addressable_id: nil, addressable_type: nil, created_at: nil, updated_at: nil>
+  
+  >> address.valid?
+  => true
+  
+  >> address
+  => #<Address id: nil, street_address: "1 ICON", postal_code: "92610", city_id: 7, md5: nil, lat: #<BigDecimal:b71c6bac,'0.3367182E2',12(12)>, lng: #<BigDecimal:b71c6b5c,'-0.117645876E3',12(16)>, addressable_id: nil, addressable_type: nil, created_at: nil, updated_at: nil>
+
+    
+= Manual Setup
+
+
+Copy the models and data (or at least the ones you want in your app) into your db/ folder. 
+cp -r vendor/plugins/contact_magic/db/migrate RAILS_ROOT/db/migrate
+
+=Example
+
+
+These collection of models are also useful as a polymorphic association.
+For example, if you had a Company class that also had and address you could
+easily just do add in a contact  and address along side the order model by
+doing something like this:
+
+  class Company < ActiveRecord::Base
+    has_one :contact, :as => :personable
+    has_one :billing_address, :as => :addressable
+    
+    # or mix them up
+    belongs_to :email # must have a email_id in the table.
+    has_many :ip_addresses, :as => :ipable
+    
+    has_one :phone_number, :as => :phonable
+  end
+
+= Requirements
+  A MySQL database
+    Unfortunately, this won't work with sqlite3 as I am loading in the 
+    countries in the migration as well as making making use of the Geokit
+    plugin's acts_as_mappable. This prooves to be very handy when searching 
+    for locations using Geokit's geocode-rich search features.
+    
+  geokit gem and geokit-rails plugin:
+  
+    GeoKit Gem
+    http://github.com/andre/geokit-gem/tree/master
+    
+    GeoKit Plugin
+    http://github.com/andre/geokit-rails/tree/master
+    
+    Dig (DNS lookup utility)
+
+      Dig is used to make sure an email address acutally has a server.
+        
+        Ubuntu 
+        sudo apt-get install dnsutils 
+
+        OsX
+        http://developer.apple.com/documentation/Darwin/Reference/ManPages/man1/dig.1.html
+        I believe it is on OsX's default installation.
+
+
+Copyright (c) 2009 Mark McDonald, released under the MIT license ...Have fun!

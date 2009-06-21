@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>File: README.rdoc</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <meta http-equiv="Content-Script-Type" content="text/javascript" />
+  <link rel="stylesheet" href=".././rdoc-style.css" type="text/css" media="screen" />
+  <script type="text/javascript">
+  // <![CDATA[
+
+  function popupCode( url ) {
+    window.open(url, "Code", "resizable=yes,scrollbars=yes,toolbar=no,status=no,height=150,width=400")
+  }
+
+  function toggleCode( id ) {
+    if ( document.getElementById )
+      elem = document.getElementById( id );
+    else if ( document.all )
+      elem = eval( "document.all." + id );
+    else
+      return false;
+
+    elemStyle = elem.style;
+    
+    if ( elemStyle.display != "block" ) {
+      elemStyle.display = "block"
+    } else {
+      elemStyle.display = "none"
+    }
+
+    return true;
+  }
+  
+  // Make codeblocks hidden by default
+  document.writeln( "<style type=\"text/css\">div.method-source-code { display: none }</style>" )
+  
+  // ]]>
+  </script>
+
+</head>
+<body>
+
+
+
+  <div id="fileHeader">
+    <h1>README.rdoc</h1>
+    <table class="header-table">
+    <tr class="top-aligned-row">
+      <td><strong>Path:</strong></td>
+      <td>README.rdoc
+      </td>
+    </tr>
+    <tr class="top-aligned-row">
+      <td><strong>Last Update:</strong></td>
+      <td>Sun Jun 21 10:22:21 -0700 2009</td>
+    </tr>
+    </table>
+  </div>
+  <!-- banner header -->
+
+  <div id="bodyContent">
+
+
+
+  <div id="contextContent">
+
+    <div id="description">
+      <h1>ContactKit</h1>
+<h6>======</h6>
+<p>
+ContactKit is a collection of all of the associations I find useful when
+creating a simple (or complicated) application as I always seem to end up
+using these same associations. In each of these classes you will find
+little goodies that allow you to work effectively with the association
+type. All are equipped with polymorphic attributes so you can use them any
+want in multiple classes without interference.
+</p>
+<p>
+I added in a sample Order class that shows how one could usefully connect
+these as associations using the belongs to method. In a real order class
+you would most likely never use a belongs_to association as address
+normalization in not what you want. In that case you would use a has_one
+association as you need to record the data in that record for the given
+order.
+</p>
+<p>
+Below is that a class using the belongs_to example:
+</p>
+<pre>
+  class Order &lt; ActiveRecord::Base
+    belongs_to :email
+
+    belongs_to :phone_number
+    belongs_to :ip_address
+
+    belongs_to :shipping_address,       :class_name =&gt; 'Address'
+    belongs_to :billing_address,        :class_name =&gt; 'Address'
+
+    belongs_to :shipping_receipient, :class_name =&gt; 'Person'
+    belongs_to :billing_receipient, :class_name =&gt; 'Person'
+
+  end
+</pre>
+<p>
+Perhaps the most useful part of ContactKit is the Address class as it makes
+use of Geokit to verify the address location. It doesn this by making a
+call to google geocode (or yahoo depending on configuration). Although your
+limited to what yahoo or google have listed in their database, I think you
+will find that they have a pretty accurate reading on worldwide addresses.
+</p>
+<pre>
+ I wrote this class to get around using expensive services such as QuickAddress and Melissa Data (which are excellent options if you have the money eg, ~$20K US a year).  You will have to install the geokit-rails  plugin and the geokit gem to make use of all these nifty features. I also
+</pre>
+<p>
+went a little bit further to normalise the Address attributes such as City,
+Region and Country which are saved and stored in their respective tables.
+</p>
+<p>
+Oh one other nice thing the Address class does is make use of
+GeoKit&#8216;s geoip and geocodes the address on the save.
+</p>
+<p>
+If you have any questions/suggestions feel free to email me at
+mark.mcdonald &#8212;at~~gmail.com
+</p>
+<p>
+If you do use this, please send me a note and tell me if it was useful!
+</p>
+<p>
+Sample Address Usage (in console):
+</p>
+<pre>
+  &gt;&gt; address = Address.new(:street_address =&gt; '1 icon', :postal_code =&gt;'92610')
+
+  =&gt; #&lt;Address id: nil, street_address: &quot;1 icon&quot;, postal_code: &quot;92610&quot;, city_id: nil, md5: nil, lat: nil, lng: nil, addressable_id: nil, addressable_type: nil, created_at: nil, updated_at: nil&gt;
+
+  &gt;&gt; address.valid?
+  =&gt; true
+
+  &gt;&gt; address
+  =&gt; #&lt;Address id: nil, street_address: &quot;1 ICON&quot;, postal_code: &quot;92610&quot;, city_id: 7, md5: nil, lat: #&lt;BigDecimal:b71c6bac,'0.3367182E2',12(12)&gt;, lng: #&lt;BigDecimal:b71c6b5c,'-0.117645876E3',12(16)&gt;, addressable_id: nil, addressable_type: nil, created_at: nil, updated_at: nil&gt;
+</pre>
+<h1>Manual Setup</h1>
+<p>
+Copy the models and data (or at least the ones you want in your app) into
+your db/ folder. cp -r vendor/plugins/contact_magic/db/migrate
+RAILS_ROOT/db/migrate
+</p>
+<h1>Example</h1>
+<p>
+These collection of models are also useful as a polymorphic association.
+For example, if you had a Company class that also had and address you could
+easily just do add in a contact and address along side the order model by
+doing something like this:
+</p>
+<pre>
+  class Company &lt; ActiveRecord::Base
+    has_one :contact, :as =&gt; :personable
+    has_one :billing_address, :as =&gt; :addressable
+
+    # or mix them up
+    belongs_to :email # must have a email_id in the table.
+    has_many :ip_addresses, :as =&gt; :ipable
+
+    has_one :phone_number, :as =&gt; :phonable
+  end
+</pre>
+<h1>Requirements</h1>
+<pre>
+  A MySQL database
+    Unfortunately, this won't work with sqlite3 as I am loading in the
+    countries in the migration as well as making making use of the Geokit
+    plugin's acts_as_mappable. This prooves to be very handy when searching
+    for locations using Geokit's geocode-rich search features.
+
+  geokit gem and geokit-rails plugin:
+
+    GeoKit Gem
+    http://github.com/andre/geokit-gem/tree/master
+
+    GeoKit Plugin
+    http://github.com/andre/geokit-rails/tree/master
+
+    Dig (DNS lookup utility)
+
+      Dig is used to make sure an email address acutally has a server.
+
+        Ubuntu
+        sudo apt-get install dnsutils
+
+        OsX
+        http://developer.apple.com/documentation/Darwin/Reference/ManPages/man1/dig.1.html
+        I believe it is on OsX's default installation.
+</pre>
+<p>
+Copyright (c) 2009 Mark McDonald, released under the MIT license
+&#8230;Have fun!
+</p>
+
+    </div>
+
+
+   </div>
+
+
+  </div>
+
+
+    <!-- if includes -->
+
+    <div id="section">
+
+
+
+
+
+      
+
+
+    <!-- if method_list -->
+
+
+  </div>
+
+
+<div id="validator-badges">
+  <p><small><a href="http://validator.w3.org/check/referer">[Validate]</a></small></p>
+</div>
+
+</body>
+</html>
